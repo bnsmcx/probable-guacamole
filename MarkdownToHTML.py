@@ -12,35 +12,36 @@ import re
 
 
 def _contains_inline_syntax(word: str) -> bool:
-    """check for bold/italic/code and return the right tags"""
-    return re.match("[`\\*]{1,3}", word)
+    """check for bold/italic/code markdown syntax"""
+    syntax_flags = ['*', '**', '***', '`']
+
+    for flag in syntax_flags:
+        if flag in word:
+            return True
+
+    return False
 
 
 def _parse_inline_syntax(word: str) -> str:
     """return appropriate html tag for code/bold/italics"""
-    if re.match("(?<!\\*)\\*(?!\\*)", word):
-        word = re.sub("^(?<!\\*)\\*(?!\\*)", "<em>", word)
-        word = re.sub("(?<!\\*)\\*(?!\\*)$", "</em>", word)
-        return word
-    elif re.match("(?<!\\*)\\*{2}(?!\\*)", word):
-        word = re.sub("^(?<!\\*)\\*{2}(?!\\*)", "<strong>", word)
-        word = re.sub("(?<!\\*)\\*{2}(?!\\*)$", "</strong>", word)
-        return word
-    elif re.match("(?<!\\*)\\*{3}(?!\\*)", word):
-        word = re.sub("^(?<!\\*)\\*{3}(?!\\*)", "<strong><em>", word)
-        word = re.sub("(?<!\\*)\\*{3}(?!\\*)$", "</em></strong>", word)
-        return word
-    elif re.match("`", word):
-        word = re.sub("^`", "<code>", word)
-        word = re.sub("`$", "</code>", word)
-        return word
+    if word[-1] in ['.', '!', '?', ',']:
+        return _parse_inline_syntax(word[:-1]) + "."
+
+    word = re.sub("^(?<!\\*)\\*(?!\\*)", "<em>", word)
+    word = re.sub("(?<!\\*)\\*(?!\\*)$", "</em>", word)
+    word = re.sub("^(?<!\\*)\\*{2}(?!\\*)", "<strong>", word)
+    word = re.sub("(?<!\\*)\\*{2}(?!\\*)$", "</strong>", word)
+    word = re.sub("^(?<!\\*)\\*{3}(?!\\*)", "<strong><em>", word)
+    word = re.sub("(?<!\\*)\\*{3}(?!\\*)$", "</em></strong>", word)
+    word = re.sub("^`", "<code>", word)
+    word = re.sub("`$", "</code>", word)
+    return word
 
 
 def _parse_inline(line: list) -> str:
     """scrubs a line for inline syntax"""
     text = ""
     for word in line:
-        print(word)
         if _contains_inline_syntax(word):
             text += _parse_inline_syntax(word) + " "
         else:

@@ -18,4 +18,4 @@
 
 ## This is a normal paragraph:
 
-Once upon a time there was a mountain.  The mountain had *snow* in **the winter**.  Skiers ***rejoiced***.
+Once upon a time there was a mountain.  The mountain *had snow* in **the winter**.  ***Skiers rejoiced***.

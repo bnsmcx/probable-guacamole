@@ -36,20 +36,33 @@ def _parse_inline_syntax(word: str) -> str:
         return word
 
 
+def _parse_inline(line: str) -> str:
+    """scrubs a line for inline syntax"""
+    text = ""
+    for word in line:
+        if _contains_inline_syntax(word):
+            text += _parse_inline_syntax(word) + " "
+        else:
+            text += word + " "
+    return text.strip()
+
+
 def _parse_heading(line: str) -> str:
     """parse markdown to return html heading"""
     heading_level = len(line.split()[0])
     opening_tag = "<h" + str(heading_level) + ">"
-    heading_text = ""
+    heading_text = _parse_inline(line.strip().split()[1:])
     closing_tag = "</h" + str(heading_level) + ">"
 
-    for word in line.strip().split()[1:]:
-        if _contains_inline_syntax(word):
-            heading_text += _parse_inline_syntax(word) + " "
-        else:
-            heading_text += word + " "
+    return opening_tag + heading_text + closing_tag
 
-    return opening_tag + heading_text.strip() + closing_tag
+
+# def _parse_blockquote(line: str) -> str:
+#     """parse markdown to return html blockquote"""
+#     quote = ""
+#
+#     for word in line.strip().split()[1:]:
+#
 
 
 def _process_line(line: str) -> str:
@@ -61,8 +74,8 @@ def _process_line(line: str) -> str:
 
     if re.fullmatch("#+", first_token):
         return _parse_heading(line)
-    elif first_token == '>':
-        pass
+    # elif first_token == '>':
+    #     return _parse_blockquote(line)
     elif first_token in ['-', '*']:
         pass
     elif re.fullmatch("[0-9]+\\.", first_token):

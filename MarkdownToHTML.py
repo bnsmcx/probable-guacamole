@@ -36,10 +36,11 @@ def _parse_inline_syntax(word: str) -> str:
         return word
 
 
-def _parse_inline(line: str) -> str:
+def _parse_inline(line: list) -> str:
     """scrubs a line for inline syntax"""
     text = ""
     for word in line:
+        print(word)
         if _contains_inline_syntax(word):
             text += _parse_inline_syntax(word) + " "
         else:
@@ -47,22 +48,26 @@ def _parse_inline(line: str) -> str:
     return text.strip()
 
 
-def _parse_heading(line: str) -> str:
+def _parse_heading(line: list, first_token: str) -> str:
     """parse markdown to return html heading"""
-    heading_level = len(line.split()[0])
+    heading_level = len(first_token)
     opening_tag = "<h" + str(heading_level) + ">"
-    heading_text = _parse_inline(line.strip().split()[1:])
+    heading_text = _parse_inline(line)
     closing_tag = "</h" + str(heading_level) + ">"
 
     return opening_tag + heading_text + closing_tag
 
 
-# def _parse_blockquote(line: str) -> str:
-#     """parse markdown to return html blockquote"""
-#     quote = ""
-#
-#     for word in line.strip().split()[1:]:
-#
+def _parse_blockquote(line: list) -> str:
+    """parse markdown to return html blockquote"""
+    quote = _parse_inline(line)
+    return "<p>" + quote + "</p>"
+
+
+def _parse_paragraph(line: list) -> str:
+    """parse markdown to return html paragraph"""
+    paragraph = _parse_inline(line)
+    return paragraph
 
 
 def _process_line(line: str) -> str:
@@ -70,22 +75,24 @@ def _process_line(line: str) -> str:
     if line == '\n':
         return
 
-    first_token = line.split()[0]
+    line = line.strip().split()
+    first_token = line[0]
+    line = line[1:]
 
     if re.fullmatch("#+", first_token):
-        return _parse_heading(line)
-    # elif first_token == '>':
-    #     return _parse_blockquote(line)
+        return _parse_heading(line, first_token)
+    elif first_token == '>':
+        return _parse_blockquote(line)
     elif first_token in ['-', '*']:
         pass
     elif re.fullmatch("[0-9]+\\.", first_token):
         pass
     elif re.fullmatch("[-=]{3,}", first_token):
-        pass
+        return "<hr />"
     elif re.fullmatch("<.*", first_token):
         pass
     else:
-        pass
+        return _parse_paragraph(line)
 
 
 def get_html(markdown_file_path: str) -> list:

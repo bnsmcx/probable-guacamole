@@ -3,9 +3,9 @@ FILE:       test_MarkdownToHTML.py
 DATE:       22 MAY 2021
 AUTHOR:     Ben Simcox
 PROJECT:    probable-guacamole
-PURPOSE:    Tests MarkdownToHTML.py
+PURPOSE:    Tests markdown_to_html.py
 """
-import MarkdownToHTML as m2h
+import markdown_to_html as m2h
 
 
 def main():

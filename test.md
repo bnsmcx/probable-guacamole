@@ -36,3 +36,14 @@ Once upon a time there was a *mountain*.  The mountain had **snow** in the winte
 1. first item
 2. second item
 3. third item
+
+## This is a code block:
+
+```
+	def hello_world():
+		"""prints hellow world"""
+
+	def main():
+		"""calls hello_world()"""
+		hello_world()
+```

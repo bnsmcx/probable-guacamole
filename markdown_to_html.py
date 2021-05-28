@@ -32,7 +32,7 @@ def _parse_inline_syntax(word: str) -> str:
     word = re.sub("(?<!\\*)\\*{2}(?!\\*)$", "</strong>", word)
     word = re.sub("^(?<!\\*)\\*{3}(?!\\*)", "<strong><em>", word)
     word = re.sub("(?<!\\*)\\*{3}(?!\\*)$", "</em></strong>", word)
-    word = re.sub("^`", "<code>", word)
+    word = re.sub("^`", "/<code>", word)
     word = re.sub("`$", "</code>", word)
     return word
 
@@ -84,9 +84,10 @@ def _process_lines(markdown_lines: list) -> list:
         line = markdown_lines.pop(0)
 
         if line == '\n':
+            html_lines.append("<br />")
             continue
 
-        line = line.strip().split()
+        line = line.split()
         first_token = line[0]
         special_line = line[1:]
 
@@ -123,6 +124,22 @@ def _process_lines(markdown_lines: list) -> list:
 
         elif re.fullmatch("<.*", first_token):
             pass
+
+        elif first_token == '```':
+            code_block = ["<pre><code>\n"]
+            while len(markdown_lines) > 0:
+                if markdown_lines[0] == "\n":
+                    code_block.append("<br />\n")
+                    markdown_lines.pop(0)
+                    continue
+                elif markdown_lines[0].split()[0] == '```':
+                    code_block.append("</code></pre>\n")
+                    markdown_lines.pop(0)
+                    break
+                else:
+                    code_block.append(markdown_lines.pop(0))
+            for item in code_block:
+                html_lines.append(item)
 
         else:
             html_lines.append(_parse_paragraph(line))

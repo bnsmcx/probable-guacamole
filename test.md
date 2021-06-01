@@ -11,4 +11,5 @@ another comment
 *italic*
 **bold**
 ***bold and italic***
+`code snippet`
 

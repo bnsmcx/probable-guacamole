@@ -84,7 +84,6 @@ def _process_lines(markdown_lines: list) -> list:
         line = markdown_lines.pop(0)
 
         if line == '\n':
-            html_lines.append("<br />")
             continue
 
         line = line.split()
@@ -122,8 +121,18 @@ def _process_lines(markdown_lines: list) -> list:
         elif re.fullmatch("[-=]{3,}", first_token):
             html_lines.append("<hr />")
 
-        elif re.fullmatch("<.*", first_token):
-            pass
+        # elif re.fullmatch("<!--.*", first_token):
+        #     comment = ""
+        #     current_line = line
+        #     while "-->" not in comment:
+        #         for word in current_line:
+        #             if word == "-->":
+        #                 comment += " " + word
+        #                 html_lines.append(comment)
+        #                 break
+        #             else:
+        #                 comment += " " + word
+        #         current_line = markdown_lines.pop().split()
 
         elif first_token == '```':
             code_block = ["<pre><code>\n"]

@@ -46,7 +46,7 @@ def _read_markdown(markdown_file_location: str) -> list:
         return file.readlines()
 
 
-def _parse_code_block(token: str) -> str:
+def _parse_code_snippet(token: str) -> str:
     """Handle code blocks"""
     if re.search("^`.+`$", token):
         return "<code>" + token[1:-1] + "</code>"
@@ -55,7 +55,6 @@ def _parse_code_block(token: str) -> str:
     if re.search("`$", token):
         return token[:-1] + "</code>"
     return token
-    pass
 
 
 def _parse_inline_syntax(token: str) -> str:
@@ -67,15 +66,17 @@ def _parse_inline_syntax(token: str) -> str:
     if re.search("^\\*", token) or re.search("\\*$", token):
         return _parse_italic(token)
     if re.search("^`", token) or re.search("`$", token):
-        return _parse_code_block(token)
+        return _parse_code_snippet(token)
     return token
 
 
 def _parse_paragraph(line: list) -> str:
     """Parse markdown return html paragraph"""
     paragraph_text = ""
+    if len(line) == 1 and line[0] == '\n':
+        return paragraph_text
     for word in line:
-        paragraph_text += _parse_inline_syntax(word) + " "
+        paragraph_text += _parse_inline_syntax(word)
     return "<p>" + paragraph_text.strip() + "</p>\n"
 
 
@@ -85,8 +86,8 @@ def _parse_heading(line: list, level: int) -> str:
     line = line[1:]
     while line:
         token = line.pop(0)
-        heading += _parse_inline_syntax(token) + " "
-    return heading.rstrip() + "</h" + str(level) + ">\n"
+        heading += _parse_inline_syntax(token)
+    return heading.strip() + "</h" + str(level) + ">\n"
 
 
 class Compiler:
@@ -118,9 +119,15 @@ class Compiler:
         if len(line) == 0:
             return ""
         if line[0] == "<!--":
-            return self._parse_comment(line)
+            return "\n<!--" +\
+                   self._recursive_descent_parser(line[1:], True, "-->") +\
+                   "-->\n"
         if line[0] in ['#', '##', '###', '####', '#####']:
             return _parse_heading(line, len(line[0]))
+        if line[0] == "```":
+            return "\n<pre><code>\n" +\
+                   self._recursive_descent_parser(line[1:], False, "```") +\
+                   "\n</code></pre>\n"
         return _parse_paragraph(line)
 
     def _parse_comment(self, line: list) -> str:
@@ -141,9 +148,33 @@ class Compiler:
 
     def _get_next_line(self) -> list:
         """Get the next line of markdown, return it as a list"""
-        return self.md_tokens.pop(0).split()
+        stripped_line = []
+        if self.md_tokens:
+            line = re.split("([\\t\\s])", self.md_tokens.pop(0))
+            for item in line:
+                if item == "":
+                    continue
+                stripped_line.append(item)
+        return stripped_line
 
     def _get_preview(self):
         """Creates an html snippet giving a preview of the post"""
         self.preview = self.html
         return "Not implemented yet."
+
+    def _recursive_descent_parser(self, line: list, parse_inline: bool, final_token: str) -> str:
+        """Recursively descend into and parse nested structures"""
+        result = ""
+        if len(line) == 0:
+            result += "\n"
+            line = self._get_next_line()
+        while line:
+            token = line.pop(0)
+            if token == final_token:
+                return result
+            if token == "\t":
+                result += "    "
+                continue
+            result += _parse_inline_syntax(token) if parse_inline else token
+        result += self._recursive_descent_parser(self._get_next_line(), parse_inline, final_token)
+        return result

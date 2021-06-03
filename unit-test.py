@@ -11,7 +11,7 @@ import compile_md_to_html as m2h
 def main():
     """main function"""
     compiler = m2h.Compiler("test.md")
-    print("\nOUTPUT:\n\n" + compiler.get_html())
+    print("\nOUTPUT:\n\n" + compiler.get_preview())
 
 
 if __name__ == '__main__':

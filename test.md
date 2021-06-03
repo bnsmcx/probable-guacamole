@@ -9,6 +9,10 @@ Comment -->
 ## This is h2
 ### This is h3
 
+Short paragraph.
+
+This is a markdown test file which includes all of the assorted basic markdown syntax.  This file is used during development to test functionality of the compiler.  Future expansion will add in the extended markdown syntax.
+
 ## Handling emphasis:
 
 *italic*

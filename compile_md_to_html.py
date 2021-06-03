@@ -135,7 +135,25 @@ class Compiler:
 
     def get_preview(self):
         """return the preview"""
-        return self.preview
+        html = self.html
+        title = html[html.find("<h1>"):html.find("</h1>") + 5]
+        para_start = html.find("<p>")
+        para_end = html.find("</p>")
+        if para_end - para_start > 50:
+            preview_length = 51
+            print("test")
+            while html[para_start + preview_length] != " ":
+                preview_length += 1
+                print(preview_length)
+            para_end = para_start + preview_length
+            print("Start: " + str(para_start))
+            print("End: " + str(para_end))
+            para_preview = html[para_start:para_end] + "..."
+        else:
+            para_preview = html[para_start:para_end]
+        para_preview += "</p>"
+        preview = title + "\n" + para_preview
+        return preview
 
     def _compile(self):
         """Entry point where the parsing of markdown begins"""

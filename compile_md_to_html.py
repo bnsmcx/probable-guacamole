@@ -95,6 +95,14 @@ def _parse_heading(line: list, level: int) -> str:
     return heading.strip() + "</h" + str(level) + ">\n"
 
 
+def _parse_block_quote(line: list) -> str:
+    """return a block quote"""
+    quote = "\n<blockquote>"
+    for word in line:
+        quote += _parse_inline_syntax(word)
+    return quote + "</blockquote>\n"
+
+
 class Compiler:
     """Compiler class manages markdown to html compiling"""
 
@@ -133,6 +141,8 @@ class Compiler:
             return "\n<pre><code>\n" +\
                    self._recursive_descent_parser(line[1:], False, "```") +\
                    "\n</code></pre>\n"
+        if line[0] == '>':
+            return _parse_block_quote(line[1:])
         return _parse_paragraph(line)
 
     def _parse_comment(self, line: list) -> str:

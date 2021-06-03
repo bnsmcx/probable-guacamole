@@ -32,5 +32,4 @@ def extended_code_block():
 
 ## This is a block quote
 
-> hello world is the way we say hello in a new language, 
-> these things are very exciting and I'd love to have another line
+> hello world is the way we say hello in a new language, these things are very exciting and I'd love to have another line

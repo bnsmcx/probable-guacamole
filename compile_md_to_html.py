@@ -47,7 +47,8 @@ def _read_markdown(markdown_file_location: str) -> list:
 
 
 def _parse_code_snippet(token: str) -> str:
-    """Handle code blocks"""
+    """Handle inline code snippets"""
+    print(token)
     if re.search("^`.+`$", token):
         return "<code>" + token[1:-1] + "</code>"
     if re.search("^`", token):
@@ -59,15 +60,19 @@ def _parse_code_snippet(token: str) -> str:
 
 def _parse_inline_syntax(token: str) -> str:
     """check for and handle inline syntax, statement order is meaningful"""
+    punctuation = ""
+    if re.match("[^a-zA-Z0-9_\\*`]", token[-1]):
+        punctuation = token[-1]
+        token = token[:-1]
     if re.search("^\\*{3}", token) or re.search("\\*{3}$", token):
-        return _parse_bold_italic(token)
+        return _parse_bold_italic(token) + punctuation
     if re.search("^\\*{2}", token) or re.search("\\*{2}$", token):
-        return _parse_bold(token)
+        return _parse_bold(token) + punctuation
     if re.search("^\\*", token) or re.search("\\*$", token):
-        return _parse_italic(token)
+        return _parse_italic(token) + punctuation
     if re.search("^`", token) or re.search("`$", token):
-        return _parse_code_snippet(token)
-    return token
+        return _parse_code_snippet(token) + punctuation
+    return token + punctuation
 
 
 def _parse_paragraph(line: list) -> str:

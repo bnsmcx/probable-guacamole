@@ -16,8 +16,9 @@ Comment -->
 **bold**
 
 ***bold and italic***
+`code snippet`
 
-This is a paragraph with an inline `code snippet`, cool, right?
+This is a paragraph with some inline syntax.  We have a `code snippet`, some *italic text*, some **bold text**, and some ***bold and italic*** text.
 
 ## This is a multi-line code block:
 

@@ -48,7 +48,6 @@ def _read_markdown(markdown_file_location: str) -> list:
 
 def _parse_code_snippet(token: str) -> str:
     """Handle inline code snippets"""
-    print(token)
     if re.search("^`.+`$", token):
         return "<code>" + token[1:-1] + "</code>"
     if re.search("^`", token):
@@ -58,9 +57,27 @@ def _parse_code_snippet(token: str) -> str:
     return token
 
 
+def _parse_link(token: str) -> str:
+    """parse and return a link"""
+    text = re.search(r"\[(.+)\]", token).group(1)
+    url = re.search(r"\((.+)\)", token).group(1)
+    return "<a href\"" + url + "\">" + text + "</a>"
+
+
+def _parse_image(token: str) -> str:
+    """parse and return an html image"""
+    text = re.search(r"\[(.+)\]", token).group(1)
+    path = re.search(r"\((.+)\)", token).group(1)
+    return "<img src=\"" + path + "\" alt=\"" + text + "\"" + " />"
+
+
 def _parse_inline_syntax(token: str) -> str:
     """check for and handle inline syntax, statement order is meaningful"""
     punctuation = ""
+    if re.search(r"!\[(.+)\]\((.+)\)", token):
+        return _parse_image(token)
+    if re.search(r"\[(.+)\]\((.+)\)", token):
+        return _parse_link(token)
     if re.match("[^a-zA-Z0-9_\\*`]", token[-1]):
         punctuation = token[-1]
         token = token[:-1]
@@ -143,6 +160,8 @@ class Compiler:
                    "\n</code></pre>\n"
         if line[0] == '>':
             return _parse_block_quote(line[1:])
+        if line[0] in ['---', '===']:
+            return "<hr />\n"
         return _parse_paragraph(line)
 
     def _parse_comment(self, line: list) -> str:

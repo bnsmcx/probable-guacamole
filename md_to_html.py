@@ -1,5 +1,5 @@
 """
-FILE:       compile_md_to_html.py
+FILE:       md_to_html.py
 AUTHOR:     Ben Simcox
 PROJECT:    probable-guacamole
 PURPOSE:    Recursively compile markdown to html
@@ -120,6 +120,28 @@ def _parse_block_quote(line: list) -> str:
     return quote + "</blockquote>\n"
 
 
+def _get_list_type(line: list) -> str:
+    """determine if a list item is ordered or unorderd"""
+    for item in line:
+        if item == '\t':
+            continue
+        if item in ["*", "-"]:
+            return "<ul>"
+        if re.fullmatch("[0-9]+\\.", item):
+            return "<ol>"
+        return ""
+
+
+def _strip_list_item(line: list) -> list:
+    """strip leading white space and list number or bullet"""
+    stripped_list = []
+    for item in line:
+        if item in ['\t', '\n', '*', '-'] or re.fullmatch("[0-9]+\\.", item):
+            continue
+        stripped_list.append(item)
+    return stripped_list[1:]
+
+
 class Compiler:
     """Compiler class manages markdown to html compiling"""
 
@@ -127,27 +149,23 @@ class Compiler:
         """Initialize attributes"""
         self.md_tokens = _read_markdown(markdown_file_location)  # list
         self.html = self._compile()  # str
-        self.preview = self._get_preview()  # str
+        self.preview = self.get_preview()  # str
 
-    def get_html(self):
+    def get_html(self) -> str:
         """return the html"""
         return self.html
 
-    def get_preview(self):
+    def get_preview(self) -> str:
         """return the preview"""
         html = self.html
         title = html[html.find("<h1>"):html.find("</h1>") + 5]
         para_start = html.find("<p>")
         para_end = html.find("</p>")
-        if para_end - para_start > 50:
-            preview_length = 51
-            print("test")
+        if para_end - para_start > 100:
+            preview_length = 100
             while html[para_start + preview_length] != " ":
                 preview_length += 1
-                print(preview_length)
             para_end = para_start + preview_length
-            print("Start: " + str(para_start))
-            print("End: " + str(para_end))
             para_preview = html[para_start:para_end] + "..."
         else:
             para_preview = html[para_start:para_end]
@@ -180,6 +198,8 @@ class Compiler:
             return _parse_block_quote(line[1:])
         if line[0] in ['---', '===']:
             return "<hr />\n"
+        if line[0] in ['*', '-'] or re.fullmatch("[0-9]+\\.", line[0]):
+            return self._parse_list(line, 0)
         return _parse_paragraph(line)
 
     def _parse_comment(self, line: list) -> str:
@@ -209,11 +229,6 @@ class Compiler:
                 stripped_line.append(item)
         return stripped_line
 
-    def _get_preview(self):
-        """Creates an html snippet giving a preview of the post"""
-        self.preview = self.html
-        return "Not implemented yet."
-
     def _recursive_descent_parser(self, line: list, parse_inline: bool, final_token: str) -> str:
         """Recursively descend into and parse nested structures"""
         result = ""
@@ -230,3 +245,32 @@ class Compiler:
             result += _parse_inline_syntax(token) if parse_inline else token
         result += self._recursive_descent_parser(self._get_next_line(), parse_inline, final_token)
         return result
+
+    def _parse_list(self, line: list, depth: int) -> str:
+        """Recursively handle ordered and unordered lists"""
+        opening_tag = _get_list_type(line)
+        closing_tag = re.sub("<", "</", opening_tag) + "\n"
+        list_text = opening_tag
+        while True:
+            item = "<li>"
+            line = _strip_list_item(line)
+            for word in line:
+                item += _parse_inline_syntax(word)
+            if _get_list_type(self._peek_next_line()) not in ["<ol>", "<ul>"]:
+                list_text += item + "</li>\n"
+                break
+            list_text += item + "</li>\n"
+            line = self._get_next_line()
+        return list_text + closing_tag
+
+    def _peek_next_line(self) -> list:
+        """return the next line without popping it"""
+        stripped_line = []
+        if self.md_tokens:
+            line = re.split("([\\t\\s])", self.md_tokens[0])
+            for item in line:
+                if item == "":
+                    continue
+                stripped_line.append(item)
+        return stripped_line
+        return line

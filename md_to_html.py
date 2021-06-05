@@ -257,7 +257,7 @@ class Compiler:
             for word in line:
                 item += _parse_inline_syntax(word)
             if _get_list_type(self._peek_next_line()) not in ["<ol>", "<ul>"]:
-                list_text += item + "</li>\n"
+                list_text += _parse_inline_syntax(item) + "</li>\n"
                 break
             list_text += item + "</li>\n"
             line = self._get_next_line()
